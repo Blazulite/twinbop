@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Twinbop?</title>
+    <link rel="icon" type="image/png" href="https://teedata.net/api/skin/render/name/twinbop?emotion=default_eye" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: white;
+      }
+      #twinbopImg {
+        position: absolute;
+        width: 20vw; /* scales with viewport width */
+        height: 20vw;
+        max-width: 150px; /* caps the size on large screens */
+        max-height: 150px;
+        top: -300px; /* start outside the page */
+        left: 50%;
+        transform: translateX(-50%);
+        transition: transform 0.05s linear;
+      }
+      #prankText {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        opacity: 0;
+        z-index: 2;
+        color: black;
+        font-family: sans-serif;
+        padding: 0 5vw;
+      }
+      #prankText h1 {
+        font-size: 2em; /* scales on mobile */
+        margin: 0;
+      }
+      #prankText h1 img {
+        height: 1.5em;
+        vertical-align: middle;
+      }
+      #prankText a {
+        color: blue;
+        font-size: 1em;
+        text-decoration: underline;
+        display: block;
+        margin-top: 2vw;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="twinbopImg" src="https://teedata.net/api/skin/render/name/twinbop?emotion=default_eye" alt="twinbop" />
+    <div id="prankText">
+      <h1>
+        You got twibopped!
+        <img src="https://teedata.net/api/skin/render/name/twinbop?emotion=happy_eye" alt="twinbop" />
+      </h1>
+      <a href="https://ddnet.org">Continue to ddnet.org</a>
+    </div>
+    <script>
+      const angry = new Image();
+      angry.src = 'https://teedata.net/api/skin/render/name/twinbop?emotion=angry_eye';
+      const img = document.getElementById('twinbopImg');
+      const text = document.getElementById('prankText');
+      let topPos = -200 + 108 / 2;
+      let speed = 1;
+
+      function animate() {
+        const centerY = window.innerHeight / 2 - img.offsetHeight / 2;
+
+        if (topPos < centerY - 300) {
+          speed = 0.5; // slow creep
+        } else if (topPos < centerY) {
+          speed = 20; // speed up when close
+          img.src = angry.src;
+        } else {
+          // scale image to fill the screen
+          img.style.transition = 'transform 1s ease-in';
+          img.style.transform = `scale(${(window.innerHeight / img.offsetHeight) * 100})`;
+
+          // fade in the text after a short delay
+          text.style.transition = 'opacity 1s ease-in 1s';
+          text.style.opacity = '1';
+          return; // stop animation
+        }
+
+        topPos += speed;
+        img.style.top = topPos + 'px';
+        requestAnimationFrame(animate);
+      }
+
+      window.onload = animate;
+      window.addEventListener('resize', () => {
+        img.style.left = '50%';
+      });
+    </script>
+  </body>
+</html>
