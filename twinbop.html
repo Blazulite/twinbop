@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Twinbop's Pasta</title>
+    <link rel="icon" type="image/png" href="https://teedata.net/api/skin/render/name/twinbop?emotion=happy_eye" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta property="og:title" content="Twinbop My Beloved" />
+    <meta property="og:description" content="I love Twinbop" />
+    <meta property="og:image" content="https://teedata.net/api/skin/render/name/twinbop?emotion=happy_eye" />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="/node_modules/dejavu-sans/css/dejavu-sans.css">
+    <style>
+      body {
+        background: #6690D8;
+        font-family: 'DejaVu Sans', sans-serif;
+      }
+      .outlined-text {
+        -webkit-text-stroke: 3px rgba(0, 0, 0, 0.404); /* Outline */
+        color: white; /* Text fill */
+      }
+      .side-by-side {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 32px;
+        margin: 50px auto;
+        max-width: 900px;
+      }
+      .side-by-side img {
+        max-width: 220px;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        background: rgba(0, 0, 0, 0.144);
+      }
+      .side-by-side p {
+        position: relative;
+        max-width: 600px;
+        margin: 0;
+        background: rgba(0, 0, 0, 0.144);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        font-size: 1.2em;
+        line-height: 1.6;
+      }
+      .bouncing-sticker {
+        position: fixed;
+        width: 80px;
+        height: 80px;
+        z-index: 1000;
+        cursor: grab;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div class="side-by-side">
+      <img id="twinbopImg" src="https://teedata.net/api/skin/render/name/twinbop?emotion=default_eye" alt="twinbop" />
+      <p class="outlined-text">
+        Let me tell you about the most beautiful skin in teeworlds - twinbop. Sure, everyone's running around with their basic default skins or trying to flex with some fancy community creation, but have you SEEN twinbop?
+Those gradient eyes are absolutely mesmerizing. Like, you're trying to focus on hitting that tricky part and then BAM - your teammate shows up in twinbop and you're just staring at those dreamy color-shifting eyes instead of watching where you're hooking. It's honestly distracting how pretty this skin is.
+And the colors! The way twinbop's gradient flows across the body - it's like someone took a sunset and wrapped it around a tee. No wonder half the server stops what they're doing when someone joins with twinbop equipped. We're all just standing there like "damn, that's one good-looking tee."
+      </p>
+    </div>
+    <script>
+      // Configuration
+      const NUM_STICKERS = 16;
+      const STICKER_SRCS = [
+        'sticker_twinbop.png',
+        'sticker_twinbop2.png',
+        'sticker_twinbop3.png',
+        'sticker_twinbop4.png',
+        'sticker_twinbop5.png'
+      ];
+      const STICKER_SIZE = 80;
+      const GRAVITY = 0.3; // gravity acceleration
+      const DAMPING = 1.0; // energy loss on bounce
+      const stickers = [];
+      const velocities = [];
+      const rotations = [];
+      const rotationSpeeds = [];
+      let windowW = window.innerWidth;
+      let windowH = window.innerHeight;
+
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function createSticker(i) {
+        const img = document.createElement('img');
+        img.src = STICKER_SRCS[Math.floor(Math.random() * STICKER_SRCS.length)];
+        img.className = 'bouncing-sticker';
+        img.style.position = 'fixed';
+        img.style.width = STICKER_SIZE + 'px';
+        img.style.height = STICKER_SIZE + 'px';
+        img.style.left = random(0, windowW - STICKER_SIZE) + 'px';
+        img.style.top = random(0, windowH - STICKER_SIZE) + 'px';
+        img.style.zIndex = 1000;
+        img.style.cursor = 'grab';
+        document.body.appendChild(img);
+        stickers.push(img);
+        velocities.push({
+          x: random(-4, 4),
+          y: random(-4, 4)
+        });
+        rotations.push(random(-30, 30));
+        rotationSpeeds.push(random(-2, 2));
+        makeDraggable(img, i);
+      }
+
+      // Drag and throw logic
+      function makeDraggable(img, idx) {
+        let dragging = false;
+        let offsetX, offsetY;
+        let lastX, lastY, lastTime;
+        let throwVX = 0, throwVY = 0;
+
+        img.addEventListener('mousedown', function(e) {
+          dragging = true;
+          img.style.cursor = 'grabbing';
+          offsetX = e.clientX - img.offsetLeft;
+          offsetY = e.clientY - img.offsetTop;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          lastTime = Date.now();
+          velocities[idx].x = 0;
+          velocities[idx].y = 0;
+          document.body.style.userSelect = 'none';
+        });
+        window.addEventListener('mousemove', function(e) {
+          if (!dragging) return;
+          img.style.left = (e.clientX - offsetX) + 'px';
+          img.style.top = (e.clientY - offsetY) + 'px';
+          let now = Date.now();
+          let dt = now - lastTime;
+          if (dt > 0) {
+            throwVX = (e.clientX - lastX) / dt * 16;
+            throwVY = (e.clientY - lastY) / dt * 16;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastTime = now;
+          }
+        });
+        window.addEventListener('mouseup', function(e) {
+          if (!dragging) return;
+          dragging = false;
+          img.style.cursor = 'grab';
+          velocities[idx].x = throwVX;
+          velocities[idx].y = throwVY;
+          document.body.style.userSelect = '';
+        });
+      }
+
+      function checkCollision(i, j) {
+        const a = stickers[i];
+        const b = stickers[j];
+        const ax = parseFloat(a.style.left) + STICKER_SIZE / 2;
+        const ay = parseFloat(a.style.top) + STICKER_SIZE / 2;
+        const bx = parseFloat(b.style.left) + STICKER_SIZE / 2;
+        const by = parseFloat(b.style.top) + STICKER_SIZE / 2;
+        const dist = Math.hypot(ax - bx, ay - by);
+        return dist < STICKER_SIZE;
+      }
+
+      function resolveCollision(i, j) {
+        // note for sans:
+        // I actually added collissions n stuff but eh I regretted
+        // but I'm too lazy to clean the code soo mlep
+      }
+
+      function animateStickers() {
+        windowW = window.innerWidth;
+        windowH = window.innerHeight;
+        // Collisions
+        for (let i = 0; i < stickers.length; i++) {
+          for (let j = i + 1; j < stickers.length; j++) {
+            if (checkCollision(i, j)) {
+              resolveCollision(i, j);
+            }
+          }
+        }
+        for (let i = 0; i < stickers.length; i++) {
+          const img = stickers[i];
+          let x = parseFloat(img.style.left);
+          let y = parseFloat(img.style.top);
+          let v = velocities[i];
+          let r = rotations[i];
+          let rs = rotationSpeeds[i];
+
+          // Gravity
+          v.y += GRAVITY;
+
+          if (x <= 0 || x >= windowW - STICKER_SIZE) v.x *= -1;
+          if (y >= windowH - STICKER_SIZE) {
+            v.y *= -DAMPING;
+            y = windowH - STICKER_SIZE;
+          }
+          if (y <= 0) {
+            v.y *= -1;
+            y = 0;
+          }
+
+          x += v.x;
+          y += v.y;
+          rotations[i] += rs;
+
+          // Clamp
+          x = Math.max(0, Math.min(windowW - STICKER_SIZE, x));
+          y = Math.max(0, Math.min(windowH - STICKER_SIZE, y));
+
+          img.style.left = x + 'px';
+          img.style.top = y + 'px';
+          img.style.transform = `rotate(${rotations[i]}deg)`;
+        }
+        requestAnimationFrame(animateStickers);
+      }
+      document.querySelectorAll('.bouncing-sticker').forEach(e => e.remove());
+
+      for (let i = 0; i < NUM_STICKERS; i++) createSticker(i);
+      animateStickers();
+    </script>
+  </body>
+</html>
