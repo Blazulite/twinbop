@@ -1,10 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Twinbop?</title>
     <link rel="icon" type="image/png" href="https://teedata.net/api/skin/render/name/twinbop?emotion=default_eye" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta property="og:title" content="Twinbop?" />
+    <meta property="og:description" content="Twinbop?!" />
+    <meta property="og:image" content="https://teedata.net/api/skin/render/name/twinbop?emotion=happy_eye" />
+    <meta property="og:type" content="website" />
+
     <style>
       html,
       body {
@@ -13,17 +19,22 @@
         overflow: hidden;
         background: white;
       }
+
       #twinbopImg {
         position: absolute;
-        width: 20vw; /* scales with viewport width */
+        width: 20vw;
+        /* scales with viewport width */
         height: 20vw;
-        max-width: 150px; /* caps the size on large screens */
+        max-width: 150px;
+        /* caps the size on large screens */
         max-height: 150px;
-        top: -300px; /* start outside the page */
+        top: -300px;
+        /* start outside the page */
         left: 50%;
         transform: translateX(-50%);
         transition: transform 0.05s linear;
       }
+
       #prankText {
         position: absolute;
         top: 50%;
@@ -36,14 +47,18 @@
         font-family: sans-serif;
         padding: 0 5vw;
       }
+
       #prankText h1 {
-        font-size: 2em; /* scales on mobile */
+        font-size: 2em;
+        /* scales on mobile */
         margin: 0;
       }
+
       #prankText h1 img {
         height: 1.5em;
         vertical-align: middle;
       }
+
       #prankText a {
         color: blue;
         font-size: 1em;
@@ -53,6 +68,7 @@
       }
     </style>
   </head>
+
   <body>
     <img id="twinbopImg" src="https://teedata.net/api/skin/render/name/twinbop?emotion=default_eye" alt="twinbop" />
     <div id="prankText">
