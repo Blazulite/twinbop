@@ -66,10 +66,40 @@
         display: block;
         margin-top: 2vw;
       }
+
+      #bottomLeftTrick {
+        position: fixed;
+        left: 10px;
+        top: 10px;
+        font-size: 1.7em;
+        color: #444;
+        font-family: sans-serif;
+        border-radius: 10px;
+        padding: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        background: none;
+        box-shadow: none;
+        opacity: 0; /* Start hidden */
+        transition: opacity 1s ease;
+      }
     </style>
   </head>
 
   <body>
+    <div id="bottomLeftTrick">
+      <span>Wanna see a cool trick?</span>
+      <video
+        src="https://twinbop.lol/twinbopped.mp4"
+        width="240"
+        height="160"
+        controls
+        controlsList="nodownload nofullscreen"
+        loop
+        style="margin-top: 10px; display: block"></video>
+    </div>
     <img id="twinbopImg" src="https://teedata.net/api/skin/render/name/twinbop?emotion=default_eye" alt="twinbop" />
     <div id="prankText">
       <h1>
@@ -83,6 +113,7 @@
       angry.src = 'https://teedata.net/api/skin/render/name/twinbop?emotion=angry_eye';
       const img = document.getElementById('twinbopImg');
       const text = document.getElementById('prankText');
+      const trick = document.getElementById('bottomLeftTrick');
       let topPos = -200 + 108 / 2;
       let speed = 1;
 
@@ -102,6 +133,12 @@
           // fade in the text after a short delay
           text.style.transition = 'opacity 1s ease-in 1s';
           text.style.opacity = '1';
+
+          // fade in the bottom left trick 3 seconds after text appears
+          setTimeout(() => {
+            trick.style.opacity = '1';
+          }, 3000);
+
           return; // stop animation
         }
 
@@ -113,6 +150,18 @@
       window.onload = animate;
       window.addEventListener('resize', () => {
         img.style.left = '50%';
+      });
+
+      // Make video fullscreen when playback starts
+      const video = document.querySelector('#bottomLeftTrick video');
+      video.addEventListener('play', () => {
+        if (video.requestFullscreen) {
+          video.requestFullscreen();
+        } else if (video.webkitRequestFullscreen) {
+          video.webkitRequestFullscreen();
+        } else if (video.msRequestFullscreen) {
+          video.msRequestFullscreen();
+        }
       });
     </script>
   </body>
