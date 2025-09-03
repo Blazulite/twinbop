@@ -131,7 +131,7 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
         let lastX, lastY, lastTime;
         let throwVX = 0, throwVY = 0;
 
-        img.addEventListener('mousedown', function(e) {
+        img.addEventListener('pointerdown', function(e) {
           dragging[idx] = true;
           img.style.cursor = 'grabbing';
           offsetX = positions[idx].x - e.clientX;
@@ -142,7 +142,7 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
           velocities[idx].x = 0;
           velocities[idx].y = 0;
         });
-        window.addEventListener('mousemove', function(e) {
+        window.addEventListener('pointermove', function(e) {
           if (!dragging[idx]) return;
           positions[idx].x = offsetX + e.clientX;
           positions[idx].y = offsetY + e.clientY;
@@ -159,7 +159,7 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
             thowVY = 0;
           }
         });
-        window.addEventListener('mouseup', function(e) {
+        function pointerUp(e) {
           if (!dragging[idx]) return;
           dragging[idx] = false;
           img.style.cursor = 'grab';
@@ -170,7 +170,9 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
             velocities[idx].x = 0;
             velocities[idx].y = 0;
           }
-        });
+        }
+        window.addEventListener('pointerup', pointerUp);
+        window.addEventListener('pointercancel', pointerUp);
       }
 
       function checkCollision(i, j) {
