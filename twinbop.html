@@ -48,10 +48,18 @@
       }
       .bouncing-sticker {
         position: fixed;
+        left: 0;
+        top: 0;
         width: 80px;
         height: 80px;
         z-index: 1000;
         cursor: grab;
+        user-drag: none;
+        -webkit-user-drag: none;
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
       }
 
     </style>
@@ -79,7 +87,9 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
       const STICKER_SIZE = 80;
       const GRAVITY = 0.3; // gravity acceleration
       const DAMPING = 1.0; // energy loss on bounce
+      const dragging = [];
       const stickers = [];
+      const positions = [];
       const velocities = [];
       const rotations = [];
       const rotationSpeeds = [];
@@ -97,11 +107,14 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
         img.style.position = 'fixed';
         img.style.width = STICKER_SIZE + 'px';
         img.style.height = STICKER_SIZE + 'px';
-        img.style.left = random(0, windowW - STICKER_SIZE) + 'px';
-        img.style.top = random(0, windowH - STICKER_SIZE) + 'px';
         img.style.zIndex = 1000;
         img.style.cursor = 'grab';
         document.body.appendChild(img);
+        dragging.push(false);
+        positions.push({
+          x: random(0, windowW - STICKER_SIZE),
+          y: random(0, windowH - STICKER_SIZE)
+        });
         stickers.push(img);
         velocities.push({
           x: random(-4, 4),
@@ -114,28 +127,26 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
 
       // Drag and throw logic
       function makeDraggable(img, idx) {
-        let dragging = false;
         let offsetX, offsetY;
         let lastX, lastY, lastTime;
         let throwVX = 0, throwVY = 0;
 
-        img.addEventListener('mousedown', function(e) {
-          dragging = true;
+        img.addEventListener('pointerdown', function(e) {
+          dragging[idx] = true;
           img.style.cursor = 'grabbing';
-          offsetX = e.clientX - img.offsetLeft;
-          offsetY = e.clientY - img.offsetTop;
+          offsetX = positions[idx].x - e.clientX;
+          offsetY = positions[idx].y - e.clientY;
           lastX = e.clientX;
           lastY = e.clientY;
-          lastTime = Date.now();
+          lastTime = performance.now();
           velocities[idx].x = 0;
           velocities[idx].y = 0;
-          document.body.style.userSelect = 'none';
         });
-        window.addEventListener('mousemove', function(e) {
-          if (!dragging) return;
-          img.style.left = (e.clientX - offsetX) + 'px';
-          img.style.top = (e.clientY - offsetY) + 'px';
-          let now = Date.now();
+        window.addEventListener('pointermove', function(e) {
+          if (!dragging[idx]) return;
+          positions[idx].x = offsetX + e.clientX;
+          positions[idx].y = offsetY + e.clientY;
+          let now = performance.now();
           let dt = now - lastTime;
           if (dt > 0) {
             throwVX = (e.clientX - lastX) / dt * 16;
@@ -143,16 +154,25 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
             lastX = e.clientX;
             lastY = e.clientY;
             lastTime = now;
+          } else {
+            thowVX = 0;
+            thowVY = 0;
           }
         });
-        window.addEventListener('mouseup', function(e) {
-          if (!dragging) return;
-          dragging = false;
+        function pointerUp(e) {
+          if (!dragging[idx]) return;
+          dragging[idx] = false;
           img.style.cursor = 'grab';
-          velocities[idx].x = throwVX;
-          velocities[idx].y = throwVY;
-          document.body.style.userSelect = '';
-        });
+          if (performance.now() - lastTime < 50) {
+            velocities[idx].x = throwVX;
+            velocities[idx].y = throwVY;
+          } else {
+            velocities[idx].x = 0;
+            velocities[idx].y = 0;
+          }
+        }
+        window.addEventListener('pointerup', pointerUp);
+        window.addEventListener('pointercancel', pointerUp);
       }
 
       function checkCollision(i, j) {
@@ -185,36 +205,34 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
         }
         for (let i = 0; i < stickers.length; i++) {
           const img = stickers[i];
-          let x = parseFloat(img.style.left);
-          let y = parseFloat(img.style.top);
+          let p = positions[i];
           let v = velocities[i];
           let r = rotations[i];
           let rs = rotationSpeeds[i];
 
-          // Gravity
-          v.y += GRAVITY;
+          if (!dragging[i]) {
+            // Gravity
+            v.y += GRAVITY;
 
-          if (x <= 0 || x >= windowW - STICKER_SIZE) v.x *= -1;
-          if (y >= windowH - STICKER_SIZE) {
-            v.y *= -DAMPING;
-            y = windowH - STICKER_SIZE;
-          }
-          if (y <= 0) {
-            v.y *= -1;
-            y = 0;
-          }
+            if (p.x <= 0 || p.x >= windowW - STICKER_SIZE) v.x *= -1;
+            if (p.y >= windowH - STICKER_SIZE) {
+              v.y *= -DAMPING;
+              p.y = windowH - STICKER_SIZE;
+            }
+            if (p.y <= 0) {
+              v.y *= -1;
+              p.y = 0;
+            }
 
-          x += v.x;
-          y += v.y;
+            p.x += v.x;
+            p.y += v.y;
+          }
           rotations[i] += rs;
 
           // Clamp
-          x = Math.max(0, Math.min(windowW - STICKER_SIZE, x));
-          y = Math.max(0, Math.min(windowH - STICKER_SIZE, y));
-
-          img.style.left = x + 'px';
-          img.style.top = y + 'px';
-          img.style.transform = `rotate(${rotations[i]}deg)`;
+          p.x = Math.max(0, Math.min(windowW - STICKER_SIZE, p.x));
+          p.y = Math.max(0, Math.min(windowH - STICKER_SIZE, p.y));
+          img.style.transform = `translate(${p.x}px,${p.y}px) rotate(${rotations[i]}deg)`;
         }
         requestAnimationFrame(animateStickers);
       }
