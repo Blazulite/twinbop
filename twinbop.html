@@ -52,6 +52,12 @@
         height: 80px;
         z-index: 1000;
         cursor: grab;
+        user-drag: none;
+        -webkit-user-drag: none;
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
       }
 
     </style>
@@ -129,7 +135,6 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
           lastTime = Date.now();
           velocities[idx].x = 0;
           velocities[idx].y = 0;
-          document.body.style.userSelect = 'none';
         });
         window.addEventListener('mousemove', function(e) {
           if (!dragging) return;
@@ -151,7 +156,6 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
           img.style.cursor = 'grab';
           velocities[idx].x = throwVX;
           velocities[idx].y = throwVY;
-          document.body.style.userSelect = '';
         });
       }
 
