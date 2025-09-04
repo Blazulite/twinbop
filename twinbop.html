@@ -193,7 +193,7 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
         }
         step(delta) {
           const GRAVITY = 500; // gravity acceleration
-          const DAMPING = 1.0; // energy loss on bounce
+          const DAMPING = 0.7; // energy loss on bounce
           if (!this.dragging) {
             // Gravity
             this.vel.y += GRAVITY * delta;
@@ -281,4 +281,5 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
       //   }
     </script>
   </body>
+
 </html>
