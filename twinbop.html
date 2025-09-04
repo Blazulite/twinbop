@@ -84,6 +84,27 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
         'sticker_twinbop4.png',
         'sticker_twinbop5.png'
       ];
+      const PAIN_SRCS = [
+        'audio/vo_teefault_pain_long-01.wav',
+        'audio/vo_teefault_pain_long-02.wav',
+        'audio/vo_teefault_pain_short-01.wav',
+        'audio/vo_teefault_pain_short-02.wav',
+        'audio/vo_teefault_pain_short-03.wav',
+        'audio/vo_teefault_pain_short-04.wav',
+        'audio/vo_teefault_pain_short-05.wav',
+        'audio/vo_teefault_pain_short-06.wav',
+        'audio/vo_teefault_pain_short-07.wav',
+        'audio/vo_teefault_pain_short-08.wav',
+        'audio/vo_teefault_pain_short-09.wav',
+        'audio/vo_teefault_pain_short-10.wav',
+        'audio/vo_teefault_pain_short-11.wav',
+        'audio/vo_teefault_pain_short-12.wav'
+      ];
+      const MANHANDLE_SRCS = [
+        'audio/foley_body_impact-01.wav',
+        'audio/foley_body_impact-02.wav',
+        'audio/foley_body_impact-03.wav'
+      ];
       const STICKER_SIZE = 80;
       const GRAVITY = 0.3; // gravity acceleration
       const DAMPING = 1.0; // energy loss on bounce
@@ -95,6 +116,20 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
       const rotationSpeeds = [];
       let windowW = window.innerWidth;
       let windowH = window.innerHeight;
+
+      function causePain(volume) {
+        const audio = new Audio(PAIN_SRCS[Math.floor(Math.random() * PAIN_SRCS.length)]);
+        volume ??= 1;
+        if (volume > 1)
+          volume = 1;
+        audio.volume = volume * 0.75;
+        audio.play().catch(() => {});
+      }
+      function manhandle() {
+        const audio = new Audio(MANHANDLE_SRCS[Math.floor(Math.random() * MANHANDLE_SRCS.length)]);
+        audio.volume = 0.75;
+        audio.play().catch(() => {});
+      }
 
       function random(min, max) {
         return Math.random() * (max - min) + min;
@@ -141,6 +176,7 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
           lastTime = performance.now();
           velocities[idx].x = 0;
           velocities[idx].y = 0;
+          manhandle();
         });
         window.addEventListener('pointermove', function(e) {
           if (!dragging[idx]) return;
@@ -214,15 +250,24 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
             // Gravity
             v.y += GRAVITY;
 
-            if (p.x <= 0 || p.x >= windowW - STICKER_SIZE) v.x *= -1;
+            let pain = false;
+
+            if (p.x <= 0 || p.x >= windowW - STICKER_SIZE) {
+              v.x *= -1;
+              pain = true;
+            }
             if (p.y >= windowH - STICKER_SIZE) {
               v.y *= -DAMPING;
               p.y = windowH - STICKER_SIZE;
+              pain = true;
             }
             if (p.y <= 0) {
               v.y *= -1;
               p.y = 0;
+              pain = true;
             }
+            if (pain)
+              causePain(Math.max(Math.abs(v.x), Math.abs(v.y)) / 250);
 
             p.x += v.x;
             p.y += v.y;
