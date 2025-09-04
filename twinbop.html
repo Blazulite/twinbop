@@ -75,171 +75,210 @@ And the colors! The way twinbop's gradient flows across the body - it's like som
       </p>
     </div>
     <script>
-      // Configuration
-      const NUM_STICKERS = 16;
-      const STICKER_SRCS = [
-        'sticker_twinbop.png',
-        'sticker_twinbop2.png',
-        'sticker_twinbop3.png',
-        'sticker_twinbop4.png',
-        'sticker_twinbop5.png'
-      ];
-      const STICKER_SIZE = 80;
-      const GRAVITY = 0.3; // gravity acceleration
-      const DAMPING = 1.0; // energy loss on bounce
-      const dragging = [];
-      const stickers = [];
-      const positions = [];
-      const velocities = [];
-      const rotations = [];
-      const rotationSpeeds = [];
-      let windowW = window.innerWidth;
-      let windowH = window.innerHeight;
-
       function random(min, max) {
         return Math.random() * (max - min) + min;
       }
-
-      function createSticker(i) {
-        const img = document.createElement('img');
-        img.src = STICKER_SRCS[Math.floor(Math.random() * STICKER_SRCS.length)];
-        img.className = 'bouncing-sticker';
-        img.style.position = 'fixed';
-        img.style.width = STICKER_SIZE + 'px';
-        img.style.height = STICKER_SIZE + 'px';
-        img.style.zIndex = 1000;
-        img.style.cursor = 'grab';
-        document.body.appendChild(img);
-        dragging.push(false);
-        positions.push({
-          x: random(0, windowW - STICKER_SIZE),
-          y: random(0, windowH - STICKER_SIZE)
-        });
-        stickers.push(img);
-        velocities.push({
-          x: random(-4, 4),
-          y: random(-4, 4)
-        });
-        rotations.push(random(-30, 30));
-        rotationSpeeds.push(random(-2, 2));
-        makeDraggable(img, i);
+      function clamp(v, lo, hi) {
+        return Math.min(Math.max(v, lo), hi);
       }
 
-      // Drag and throw logic
-      function makeDraggable(img, idx) {
-        let offsetX, offsetY;
-        let lastX, lastY, lastTime;
-        let throwVX = 0, throwVY = 0;
-
-        img.addEventListener('pointerdown', function(e) {
-          dragging[idx] = true;
-          img.style.cursor = 'grabbing';
-          offsetX = positions[idx].x - e.clientX;
-          offsetY = positions[idx].y - e.clientY;
-          lastX = e.clientX;
-          lastY = e.clientY;
-          lastTime = performance.now();
-          velocities[idx].x = 0;
-          velocities[idx].y = 0;
-        });
-        window.addEventListener('pointermove', function(e) {
-          if (!dragging[idx]) return;
-          positions[idx].x = offsetX + e.clientX;
-          positions[idx].y = offsetY + e.clientY;
-          let now = performance.now();
-          let dt = now - lastTime;
-          if (dt > 0) {
-            throwVX = (e.clientX - lastX) / dt * 16;
-            throwVY = (e.clientY - lastY) / dt * 16;
+      class Twinbop {
+        static audioInflictSuffering(volume) {
+          const SRCS = [
+            'audio/vo_teefault_pain_long-01.wav',
+            'audio/vo_teefault_pain_long-02.wav',
+            'audio/vo_teefault_pain_short-01.wav',
+            'audio/vo_teefault_pain_short-02.wav',
+            'audio/vo_teefault_pain_short-03.wav',
+            'audio/vo_teefault_pain_short-04.wav',
+            'audio/vo_teefault_pain_short-05.wav',
+            'audio/vo_teefault_pain_short-06.wav',
+            'audio/vo_teefault_pain_short-07.wav',
+            'audio/vo_teefault_pain_short-08.wav',
+            'audio/vo_teefault_pain_short-09.wav',
+            'audio/vo_teefault_pain_short-10.wav',
+            'audio/vo_teefault_pain_short-11.wav',
+            'audio/vo_teefault_pain_short-12.wav'
+          ];
+          const audio = new Audio(SRCS[Math.floor(Math.random() * SRCS.length)]);
+          if (volume > 1)
+            volume = 1;
+          audio.volume = volume * 0.75;
+          audio.play().catch(() => {});
+        }
+        static audioTouchInappropriately() {
+          const SRCS = [
+            'audio/foley_body_impact-01.wav',
+            'audio/foley_body_impact-02.wav',
+            'audio/foley_body_impact-03.wav'
+          ];
+          const audio = new Audio(SRCS[Math.floor(Math.random() * SRCS.length)]);
+          audio.volume = 0.2;
+          audio.play().catch(() => {});
+        }
+        makeDraggable() {
+          this.dragging = false;
+          let throwVel = undefined;
+          let lastTime, lastX, lastY, offsetX, offsetY;
+          this.img.addEventListener('pointerdown', e => {
+            this.img.setPointerCapture(e.pointerId);
+            this.dragging = true;
+            this.img.style.cursor = 'grabbing';
+            offsetX = this.pos.x - e.clientX;
+            offsetY = this.pos.y - e.clientY;
             lastX = e.clientX;
             lastY = e.clientY;
-            lastTime = now;
-          } else {
-            thowVX = 0;
-            thowVY = 0;
-          }
-        });
-        function pointerUp(e) {
-          if (!dragging[idx]) return;
-          dragging[idx] = false;
-          img.style.cursor = 'grab';
-          if (performance.now() - lastTime < 50) {
-            velocities[idx].x = throwVX;
-            velocities[idx].y = throwVY;
-          } else {
-            velocities[idx].x = 0;
-            velocities[idx].y = 0;
-          }
-        }
-        window.addEventListener('pointerup', pointerUp);
-        window.addEventListener('pointercancel', pointerUp);
-      }
-
-      function checkCollision(i, j) {
-        const a = stickers[i];
-        const b = stickers[j];
-        const ax = parseFloat(a.style.left) + STICKER_SIZE / 2;
-        const ay = parseFloat(a.style.top) + STICKER_SIZE / 2;
-        const bx = parseFloat(b.style.left) + STICKER_SIZE / 2;
-        const by = parseFloat(b.style.top) + STICKER_SIZE / 2;
-        const dist = Math.hypot(ax - bx, ay - by);
-        return dist < STICKER_SIZE;
-      }
-
-      function resolveCollision(i, j) {
-        // note for sans:
-        // I actually added collissions n stuff but eh I regretted
-        // but I'm too lazy to clean the code soo mlep
-      }
-
-      function animateStickers() {
-        windowW = window.innerWidth;
-        windowH = window.innerHeight;
-        // Collisions
-        for (let i = 0; i < stickers.length; i++) {
-          for (let j = i + 1; j < stickers.length; j++) {
-            if (checkCollision(i, j)) {
-              resolveCollision(i, j);
+            lastTime = performance.now();
+            this.vel.x = 0;
+            this.vel.y = 0;
+            Twinbop.audioTouchInappropriately();
+          });
+          this.img.addEventListener('pointermove', e => {
+            if (!this.dragging) return;
+            this.pos.x = offsetX + e.clientX;
+            this.pos.y = offsetY + e.clientY;
+            let now = performance.now();
+            let dt = (now - lastTime) / 1000;
+            if (dt > 0) {
+              throwVel = {x: (e.clientX - lastX) / dt, y: (e.clientY - lastY) / dt};
+              lastX = e.clientX;
+              lastY = e.clientY;
+              lastTime = now;
+            } else {
+              throwVel = undefined;
             }
-          }
+          });
+          const pointerUp = e => {
+            if (!this.dragging) return;
+            this.img.releasePointerCapture(e.pointerId);
+            this.dragging = false;
+            this.img.style.cursor = 'grab';
+            if (performance.now() - lastTime < 50 && throwVel) {
+              this.vel.x = throwVel.x;
+              this.vel.y = throwVel.y;
+            } else {
+              this.vel.x = 0;
+              this.vel.y = 0;
+            }
+          };
+          this.img.addEventListener('pointerup', pointerUp);
+          this.img.addEventListener('pointercancel', pointerUp);
         }
-        for (let i = 0; i < stickers.length; i++) {
-          const img = stickers[i];
-          let p = positions[i];
-          let v = velocities[i];
-          let r = rotations[i];
-          let rs = rotationSpeeds[i];
-
-          if (!dragging[i]) {
+        constructor() {
+          const SRCS = [
+            'sticker_twinbop.png',
+            'sticker_twinbop2.png',
+            'sticker_twinbop3.png',
+            'sticker_twinbop4.png',
+            'sticker_twinbop5.png'
+          ];
+          this.fat = 80;
+          this.img = document.createElement('img');
+          this.img.src = SRCS[Math.floor(Math.random() * SRCS.length)];
+          this.img.classList.add('bouncing-sticker');
+          this.img.style.width = this.fat + 'px';
+          this.img.style.height = this.fat + 'px';
+          document.body.appendChild(this.img);
+          this.pos = {
+            x: random(0, window.innerWidth - this.fat),
+            y: random(0, window.innerWidth - this.fat),
+          };
+          this.vel = {
+            x: random(-400, 400),
+            y: random(-400, 400)
+          };
+          this.rot = random(-30, 30);
+          this.rotvel = random(-200, 200);
+          this.makeDraggable();
+        }
+        step(delta) {
+          const GRAVITY = 500; // gravity acceleration
+          const DAMPING = 1.0; // energy loss on bounce
+          if (!this.dragging) {
             // Gravity
-            v.y += GRAVITY;
+            this.vel.y += GRAVITY * delta;
 
-            if (p.x <= 0 || p.x >= windowW - STICKER_SIZE) v.x *= -1;
-            if (p.y >= windowH - STICKER_SIZE) {
-              v.y *= -DAMPING;
-              p.y = windowH - STICKER_SIZE;
+            let pain = false;
+            if (this.pos.x <= 0 || this.pos.x >= window.innerWidth - this.fat) {
+              this.vel.x *= -1;
+              pain = true;
             }
-            if (p.y <= 0) {
-              v.y *= -1;
-              p.y = 0;
+            if (this.pos.y >= window.innerHeight - this.fat) {
+              this.vel.y *= -DAMPING;
+              this.pos.y = window.innerHeight - this.fat;
+              pain = true;
             }
+            if (this.pos.y <= 0) {
+              this.vel.y *= -1;
+              this.pos.y = 0;
+              pain = true;
+            }
+            if (pain)
+              Twinbop.audioInflictSuffering(Math.max(Math.abs(this.vel.x), Math.abs(this.vel.y)) / 5000);
 
-            p.x += v.x;
-            p.y += v.y;
+            this.pos.x += this.vel.x * delta;
+            this.pos.y += this.vel.y * delta;
           }
-          rotations[i] += rs;
+          this.rot += this.rotvel * delta;
 
           // Clamp
-          p.x = Math.max(0, Math.min(windowW - STICKER_SIZE, p.x));
-          p.y = Math.max(0, Math.min(windowH - STICKER_SIZE, p.y));
-          img.style.transform = `translate(${p.x}px,${p.y}px) rotate(${rotations[i]}deg)`;
+          this.pos.x = clamp(this.pos.x, 0, window.innerWidth - this.fat);
+          this.pos.y = clamp(this.pos.y, 0, window.innerHeight - this.fat);
+          this.img.style.transform = `translate(${this.pos.x}px,${this.pos.y}px) rotate(${this.rot}deg)`;
         }
-        requestAnimationFrame(animateStickers);
       }
-      document.querySelectorAll('.bouncing-sticker').forEach(e => e.remove());
 
-      for (let i = 0; i < NUM_STICKERS; i++) createSticker(i);
-      animateStickers();
+      const twinbops = [];
+      for (let i = 0; i < 16; i++)
+        twinbops.push(new Twinbop());
+
+      const timing = {
+        last: performance.now(),
+        fps: 0,
+        delta: 0,
+      };
+      function frame() {
+        requestAnimationFrame(frame);
+
+        const now = performance.now();
+        timing.delta = (now - timing.last) / 1000;
+        timing.delta = Math.min(timing.delta, 1 / 20);
+        timing.fps = 1 / timing.delta;
+        timing.last = now;
+
+        // console.log(timing.delta);
+
+        for (const sticker of twinbops)
+          sticker.step(timing.delta);
+      }
+      requestAnimationFrame(frame);
+
+      // TODO
+      // function checkCollision(i, j) {
+      //   const a = stickers[i];
+      //   const b = stickers[j];
+      //   const ax = parseFloat(a.style.left) + this.fat / 2;
+      //   const ay = parseFloat(a.style.top) + this.fat / 2;
+      //   const bx = parseFloat(b.style.left) + this.fat / 2;
+      //   const by = parseFloat(b.style.top) + this.fat / 2;
+      //   const dist = Math.hypot(ax - bx, ay - by);
+      //   return dist < this.fat;
+      // }
+
+      // function resolveCollision(i, j) {
+      // }
+
+      // function animateStickers() {
+      //   window.innerWidth = window.innerWidth;
+      //   window.innerHeight = window.innerHeight;
+      //   // Collisions
+      //   for (let i = 0; i < stickers.length; i++) {
+      //     for (let j = i + 1; j < stickers.length; j++) {
+      //       if (checkCollision(i, j)) {
+      //         resolveCollision(i, j);
+      //       }
+      //     }
+      //   }
     </script>
   </body>
 </html>
